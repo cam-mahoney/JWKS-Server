@@ -13,8 +13,8 @@ export async function initializeKeys() {
 
 async function createKey(isExpired) {
   const { publicKey, privateKey } = await generateKeyPair("RS256");
-  const kid = uuidv4();
-
+  const kid = String(Math.floor(Math.random() * 1000000));
+  
   const now = Math.floor(Date.now() / 1000);
   // Set expiration: +1 hour for active, -1 hour for expired
   const expiresAt = isExpired ? now - 3600 : now + 3600;

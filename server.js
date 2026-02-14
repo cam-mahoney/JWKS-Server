@@ -6,42 +6,36 @@ import { buildJWKS } from "./jwksService.js";
 const app = express();
 app.use(express.json());
 
+// Top-level await to ensure keys are ready before the bot connects
 await initializeKeys();
+console.log("Active:", getActiveKey());
+console.log("Expired:", getExpiredKey());
 
-// JWKS Endpoint
+// JWKS Endpoint: Only serve keys that have not expired
 app.route("/.well-known/jwks.json")
   .get(async (req, res) => {
-    const validKeys = getValidPublicKeys();
-    const jwks = await buildJWKS(validKeys);
-    return res.status(200).json(jwks);
+    try {
+      const validKeys = getValidPublicKeys();
+      const jwks = await buildJWKS(validKeys);
+      return res.status(200).json(jwks);
+    } catch (err) {
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
   })
   .all((req, res) => res.sendStatus(405));
 
-// Simple Auth Endpoint (No credential checks)
-// server.js
+// Auth Endpoint: Returns signed JWT (handles expired query)
 app.route("/auth")
   .post(async (req, res) => {
     try {
-    const useExpired = req.query.expired !== undefined;
-    let key = useExpired ? getExpiredKey() : getActiveKey();
-
-    // If the server is still warming up, try to get the key one more time
-    if (!key) {
-      await initializeKeys(); 
-      key = useExpired ? getExpiredKey() : getActiveKey();
+      const useExpired = req.query.expired !== undefined;
+      const key = useExpired ? getExpiredKey() : getActiveKey();
+      const token = await signToken(key, useExpired);
+      return res.status(200).json({ jwt: token });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal Server Error");
     }
-
-    // If still no key, return 500 (Server Error), NOT 401 (Unauthorized)
-    if (!key) {
-      return res.status(500).send("Server is still initializing keys.");
-    }
-
-    const token = await signToken(key, useExpired);
-    return res.status(200).send(token);
-  } catch (err) {
-  console.error("Auth error:", err);
-  return res.status(500).send("Internal Server Error");
-  }
   })
   .all((req, res) => res.sendStatus(405));
 
@@ -49,10 +43,9 @@ app.use((req, res) => res.sendStatus(404));
 
 if (process.env.NODE_ENV !== "test") {
   const PORT = process.env.PORT || 8080;
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 }
-
 
 export default app;
