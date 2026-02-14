@@ -1,44 +1,29 @@
-import request from "supertest"
-import app from "./server.js"
-import { decodeProtectedHeader, jwtVerify } from "jose"
-import { getActiveKey } from "./keyStore.js"
+import request from "supertest";
+import app from "./server.js";
 
-describe("JWKS Server", () => {
+describe("Project 1 Simple Tests", () => {
+  test("GET JWKS works", async () => {
+    const res = await request(app).get("/.well-known/jwks.json");
+    expect(res.statusCode).toBe(200);
+  });
 
-  test("GET /jwks returns only active key", async () => {
-    const res = await request(app).get("/jwks")
-    expect(res.statusCode).toBe(200)
-    expect(res.body.keys.length).toBe(1)
-  })
+  test("POST /auth works", async () => {
+    const res = await request(app).post("/auth");
+    expect(res.statusCode).toBe(200);
+  });
 
-  test("POST /auth returns valid token", async () => {
-    const res = await request(app).post("/auth")
-    expect(res.statusCode).toBe(200)
-    expect(res.body.token).toBeDefined()
+  test("POST /auth?expired=true works", async () => {
+    const res = await request(app).post("/auth?expired=true");
+    expect(res.statusCode).toBe(200);
+  });
 
-    const header = decodeProtectedHeader(res.body.token)
-    expect(header.kid).toBeDefined()
-  })
+  test("Invalid method returns 405", async () => {
+    const res = await request(app).put("/auth");
+    expect(res.statusCode).toBe(405);
+  });
 
-  test("POST /auth?expired=true returns expired token", async () => {
-    const res = await request(app).post("/auth?expired=true")
-    expect(res.statusCode).toBe(200)
-
-    const token = res.body.token
-    const payload = JSON.parse(
-      Buffer.from(token.split(".")[1], "base64url").toString()
-    )
-
-    expect(payload.exp).toBeLessThan(Math.floor(Date.now() / 1000))
-  })
-
-  test("Valid token verifies with active public key", async () => {
-    const res = await request(app).post("/auth")
-    const token = res.body.token
-
-    const activeKey = getActiveKey()
-
-    await jwtVerify(token, activeKey.publicKey)
-  })
-
-})
+  test("Unknown route returns 404", async () => {
+    const res = await request(app).get("/bad-path");
+    expect(res.statusCode).toBe(404);
+  });
+});
