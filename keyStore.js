@@ -1,5 +1,4 @@
 import { generateKeyPair } from "jose";
-import { v4 as uuidv4 } from "uuid";
 
 // In-memory storage for simplicity
 let keys = [];
@@ -39,6 +38,6 @@ export function getExpiredKey() {
 
 export function getValidPublicKeys() {
   const now = Math.floor(Date.now() / 1000);
-  // Rubric requirement: Expired JWK must NOT be found in JWKS
+  // Expired JWK must NOT be found in JWKS
   return keys.filter(k => k.expiresAt > now);
 }

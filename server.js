@@ -18,7 +18,7 @@ app.route("/.well-known/jwks.json")
       const validKeys = getValidPublicKeys();
       const jwks = await buildJWKS(validKeys);
       return res.status(200).json(jwks);
-    } catch (err) {
+    } catch {
       return res.status(500).json({ error: "Internal Server Error" });
     }
   })
