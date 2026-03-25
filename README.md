@@ -1,20 +1,10 @@
-# JWKS Server – Project 1
+# JWKS Server – Project 2
 
 ## Overview
 
-This project implements a JSON Web Key Set (JWKS) server using Node.js and Express.
+This project extends the initial JWKS server by integrating a persistent SQLite database to store and manage RSA private keys. 
 
-It provides:
-
-A JWKS endpoint exposing valid public keys
-
-An authentication endpoint that returns signed JWTs
-
-Support for expired JWT generation
-
-Proper HTTP method enforcement and status codes
-
-Automated test coverage
+It ensures that keys remain available across server restarts and demonstrates secure database interactions using query parameters to prevent SQL injection.
 
 
 ## Technologies Used
@@ -23,9 +13,11 @@ Node.js (ES Modules)
 
 Express
 
+SQLite3
+
 jose (JWT signing)
 
-Jest (testing)
+Jest & c8 (testing)
 
 ESLint (linting)
 
@@ -41,6 +33,13 @@ Running the Server
 Start the server:
 
 npm start
+
+## Database Schema
+CREATE TABLE IF NOT EXISTS keys(
+    kid INTEGER PRIMARY KEY AUTOINCREMENT,
+    key BLOB NOT NULL,
+    exp INTEGER NOT NULL
+);
 
 Default address:
 
@@ -108,6 +107,10 @@ Proper HTTP method enforcement
 
 JWKS key validity
 
+## Blackbox Testing
+
+./gradebot project-2 --run=true
+
 
 ### Test Coverage
 
@@ -136,4 +139,5 @@ The project is configured with ESLint flat config and passes with zero errors.
 ├── server.test.js
 ├── package.json
 ├── eslint.config.js
+├── init_db.py
 └── README.md
