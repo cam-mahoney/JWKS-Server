@@ -141,3 +141,6 @@ The project is configured with ESLint flat config and passes with zero errors.
 ├── eslint.config.js
 ├── init_db.py
 └── README.md
+
+## AI Use
+Throughout the development of this JWKS server, I utilized Gemini (AI) as a comprehensive collaborator for architectural guidance, debugging, and quality assurance. My process involved iterative prompting to implement the core requirements, such as RSA key pair generation with unique 'kid' identifiers and the logic for the /auth endpoint's 'expired' query parameter. I used the AI to help troubleshoot environment-specific issues, including configuring the .eslintrc.json for ES Modules and resolving case-sensitivity errors in my file structure. I prompted the AI to help identify missing logical branches in my Jest suite, specifically for handling 404 and 405 status codes. While the AI assisted in generating initial code structures and refining my linter setup, I manually verified all logic against the project rubric and ensured the final server functioned correctly against the required blackbox testing client.
